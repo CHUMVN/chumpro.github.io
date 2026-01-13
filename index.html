@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Watermark Remover - AI Image Processing</title>
+    <meta name="description" content="Free Gemini watermark remover tool. Safe, private, and 100% browser-based.">
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B5CF6' stroke-width='2'%3E%3Cpath d='M12 3l-1.9 5.8-5.8 1.9 5.8 1.9 1.9 5.8 1.9-5.8 5.8-1.9-5.8-1.9z'/%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-card-hover: rgba(255, 255, 255, 0.06);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.4);
+            --accent-purple: #8B5CF6;
+            --accent-pink: #EC4899;
+            --accent-blue: #3B82F6;
+            --accent-cyan: #06B6D4;
+            --accent-green: #10B981;
+            --gradient-primary: linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #F97316 100%);
+            --gradient-glow: linear-gradient(135deg, rgba(139, 92, 246, 0.4) 0%, rgba(236, 72, 153, 0.4) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 50%);
+            animation: bgFloat 20s ease-in-out infinite;
+        }
+
+        @keyframes bgFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(2%, 2%) rotate(1deg);
+            }
+
+            66% {
+                transform: translate(-2%, 1%) rotate(-1deg);
+            }
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            animation: orbFloat 15s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--accent-purple);
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: var(--accent-pink);
+            top: 60%;
+            right: 10%;
+            animation-delay: -5s;
+        }
+
+        .orb-3 {
+            width: 350px;
+            height: 350px;
+            background: var(--accent-cyan);
+            bottom: 10%;
+            left: 30%;
+            animation-delay: -10s;
+        }
+
+        @keyframes orbFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(30px, -30px) scale(1.1);
+            }
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 1rem 2rem;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
+        }
+
+        .logo-icon svg {
+            width: 24px;
+            height: 24px;
+            color: white;
+        }
+
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        nav a:hover {
+            color: var(--text-primary);
+            background: var(--bg-card-hover);
+        }
+
+        .btn-github {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+        }
+
+        .btn-github svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Main Content */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 120px 2rem 4rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.03em;
+        }
+
+        .hero h1 span {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            line-height: 1.7;
+        }
+
+        /* Upload Area */
+        .upload-wrapper {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto 4rem;
+        }
+
+        .upload-area {
+            position: relative;
+            padding: 4rem 2rem;
+            background: var(--bg-card);
+            border: 2px dashed var(--border-color);
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--gradient-glow);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-purple);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(139, 92, 246, 0.2);
+        }
+
+        .upload-area:hover::before {
+            opacity: 1;
+        }
+
+        .upload-area.dragover {
+            border-color: var(--accent-pink);
+            background: rgba(236, 72, 153, 0.1);
+            transform: translateY(-4px) scale(1.01);
+        }
+
+        .upload-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .upload-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient-primary);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .upload-icon svg {
+            width: 40px;
+            height: 40px;
+            color: white;
+        }
+
+        .upload-area h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-area p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .upload-formats {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .format-tag {
+            padding: 6px 14px;
+            background: var(--bg-card-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Steps Section */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        @media (max-width: 768px) {
+            .steps {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .step {
+            position: relative;
+            padding: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .step:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-primary);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+        }
+
+        .step h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Preview Sections */
+        #singlePreview,
+        #multiPreview {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .preview-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .preview-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .preview-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-dot.original {
+            background: #EF4444;
+        }
+
+        .status-dot.processed {
+            background: var(--accent-green);
+        }
+
+        .preview-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .preview-body {
+            height: 400px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                linear-gradient(45deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%),
+                linear-gradient(-45deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.02) 75%),
+                linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.02) 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+
+        .preview-body img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .result-card {
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.1);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .control-panel h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1rem;
+        }
+
+        .btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #statusMessage {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg-card-hover);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 4rem;
+        }
+
+        .features-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .features-header h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .features-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .feature-card {
+            padding: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .feature-icon.purple {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1));
+            color: var(--accent-purple);
+        }
+
+        .feature-icon.blue {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1));
+            color: var(--accent-blue);
+        }
+
+        .feature-icon.green {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            color: var(--accent-green);
+        }
+
+        .feature-card h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem 2rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 4rem;
+        }
+
+        @media (max-width: 768px) {
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+
+        .footer-brand h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .footer-brand p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            max-width: 400px;
+        }
+
+        .footer-links h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 3rem auto 0;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Terms Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 95%;
+            max-width: 700px;
+            max-height: 85vh;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            z-index: 201;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-secondary);
+        }
+
+        .modal-close:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            max-height: calc(85vh - 140px);
+            overflow-y: auto;
+        }
+
+        .modal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-body::-webkit-scrollbar-track {
+            background: var(--bg-card);
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: var(--accent-purple);
+            border-radius: 10px;
+        }
+
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .warning-box h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            color: #F59E0B;
+            margin-bottom: 1rem;
+        }
+
+        .warning-box p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-card h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .modal-footer {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .modal-footer .btn {
+            display: inline-flex;
+            width: auto;
+            padding: 0.875rem 2rem;
+        }
+
+        /* Loading Overlay */
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        #loadingOverlay.active {
+            display: flex;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            animation: loaderPulse 1s ease-in-out infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes loaderPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 0.7;
+            }
+        }
+
+        #loadingOverlay p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            header {
+                padding: 1rem;
+            }
+
+            .logo-text {
+                display: none;
+            }
+
+            nav a:not(.btn-github) {
+                display: none;
+            }
+
+            main {
+                padding: 100px 1rem 2rem;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .upload-area {
+                padding: 2.5rem 1.5rem;
+            }
+
+            .features-header h2 {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-animation">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <header>
+        <div class="header-content">
+            <a href="./" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="m12 3-1.9 5.8-5.8 1.9 5.8 1.9 1.9 5.8 1.9-5.8 5.8-1.9-5.8-1.9Z" />
+                    </svg>
+                </div>
+                <span class="logo-text">Gemini Remover</span>
+            </a>
+            <nav>
+                <a href="https://allenkuo.medium.com/removing-gemini-ai-watermarks-a-deep-dive-into-reverse-alpha-blending-bbbd83af2a3f"
+                    target="_blank">How it works</a>
+                <a href="https://github.com/journey-ad/gemini-watermark-remover" target="_blank" class="btn-github">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                    GitHub
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="badge">
+                <span class="badge-dot"></span>
+                100% Browser-based • Private & Secure
+            </div>
+            <h1>Remove <span>Gemini AI</span> Watermarks Instantly</h1>
+            <p>Powered by reverse alpha blending algorithm. No uploads, no servers — your images never leave your
+                device.</p>
+        </section>
+
+        <div class="upload-wrapper">
+            <div id="uploadArea" class="upload-area">
+                <div class="upload-content">
+                    <div class="upload-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                    </div>
+                    <h3>Drop your images here</h3>
+                    <p>or click to browse files</p>
+                    <div class="upload-formats">
+                        <span class="format-tag">JPG</span>
+                        <span class="format-tag">PNG</span>
+                        <span class="format-tag">WebP</span>
+                    </div>
+                </div>
+                <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" multiple />
+            </div>
+        </div>
+
+        <section class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h4>Upload Image</h4>
+                <p>Drag and drop or click to select your Gemini AI generated images.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h4>Auto Process</h4>
+                <p>Our algorithm instantly detects and removes the watermark pattern.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h4>Download Result</h4>
+                <p>Save your clean, watermark-free image in full quality.</p>
+            </div>
+        </section>
+
+        <!-- Single Image Preview -->
+        <section id="singlePreview">
+            <div class="preview-grid">
+                <div class="preview-column">
+                    <div class="preview-card" style="margin-bottom: 2rem;">
+                        <div class="preview-header">
+                            <h3><span class="status-dot original"></span> Original</h3>
+                            <span id="originalInfo" class="preview-info"></span>
+                        </div>
+                        <div class="preview-body">
+                            <img id="originalImage" data-zoomable />
+                        </div>
+                    </div>
+
+                    <div id="processedSection" class="preview-card result-card" style="display: none;">
+                        <div class="preview-header">
+                            <h3><span class="status-dot processed"></span> Processed</h3>
+                            <span id="processedInfo" class="preview-info"></span>
+                        </div>
+                        <div class="preview-body">
+                            <img id="processedImage" data-zoomable />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-panel">
+                    <h4>Actions</h4>
+                    <button id="downloadBtn" class="btn btn-primary" style="display: none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        Download Result
+                    </button>
+                    <button id="resetBtn" class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                            <path d="M21 3v5h-5" />
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                            <path d="M8 16H3v5" />
+                        </svg>
+                        Reset / New Image
+                    </button>
+                    <div id="statusMessage"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Multi Image Preview -->
+        <section id="multiPreview">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h3 id="progressText" style="font-size: 1.25rem; font-weight: 600;">Processing: 0/0</h3>
+                <button id="downloadAllBtn" class="btn btn-primary"
+                    style="display: none; width: auto; margin: 0; padding: 0.75rem 1.5rem;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" style="width: 18px; height: 18px;">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Download All
+                </button>
+            </div>
+            <div id="imageList"></div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features">
+            <div class="features-header">
+                <h2>Why Choose This Tool?</h2>
+                <p>Built with privacy and performance in mind</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon purple">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                        </svg>
+                    </div>
+                    <h4>Lightning Fast</h4>
+                    <p>Process images in milliseconds using modern browser APIs. No waiting, no queues.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon blue">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                    </div>
+                    <h4>100% Private</h4>
+                    <p>All processing happens locally in your browser. Your images never leave your device.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon green">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                            <line x1="9" y1="9" x2="9.01" y2="9" />
+                            <line x1="15" y1="9" x2="15.01" y2="9" />
+                        </svg>
+                    </div>
+                    <h4>Completely Free</h4>
+                    <p>No limits, no hidden fees, no subscriptions. Use as much as you need.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <h3>Gemini Watermark Remover</h3>
+                <p>A free, open-source tool for removing Gemini AI watermarks. For educational and personal use only.
+                </p>
+            </div>
+            <div class="footer-links">
+                <h4>Links</h4>
+                <ul>
+                    <li><a href="#" id="openTermsBtn">Terms of Use</a></li>
+                    <li><a href="https://github.com/journey-ad/gemini-watermark-remover" target="_blank">GitHub</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="https://allenkuo.medium.com/removing-gemini-ai-watermarks-a-deep-dive-into-reverse-alpha-blending-bbbd83af2a3f"
+                            target="_blank">Technical Article</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© <span id="year">2025</span> Gemini Watermark Remover. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Terms Modal -->
+    <div id="termsOverlay" class="modal-overlay"></div>
+    <div id="termsModal" class="modal">
+        <div class="modal-header">
+            <h2>Terms of Use</h2>
+            <button id="closeTermsBtn" class="modal-close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="warning-box">
+                <h3>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    Important Disclaimer
+                </h3>
+                <p><strong>This tool is provided for personal and educational use only.</strong> The removal of
+                    watermarks may have legal or ethical implications depending on how you use the resulting images.
+                    Please respect content policies and intellectual property rights.</p>
+            </div>
+
+            <div class="info-card">
+                <h4>Visible Watermarks Only</h4>
+                <p>This tool only removes visible watermarks. It does not affect invisible/steganographic watermarks
+                    (like SynthID) that may be embedded in the image data.</p>
+            </div>
+
+            <div class="info-card">
+                <h4>Privacy Policy</h4>
+                <p>All image processing is done locally in your browser. We do not upload, store, or transmit your
+                    images to any server.</p>
+            </div>
+
+            <div class="info-card">
+                <h4>Limitation of Liability</h4>
+                <p>This tool is provided "as is" without warranty. The developer is not liable for any data loss, image
+                    corruption, or legal disputes arising from use of this tool.</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="agreeTermsBtn" class="btn btn-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                </svg>
+                I Understand & Agree
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="loader"></div>
+        <p>Processing your image...</p>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Modal functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const openTermsBtn = document.getElementById('openTermsBtn');
+            const closeTermsBtn = document.getElementById('closeTermsBtn');
+            const agreeTermsBtn = document.getElementById('agreeTermsBtn');
+            const termsOverlay = document.getElementById('termsOverlay');
+            const termsModal = document.getElementById('termsModal');
+
+            function openModal() {
+                termsOverlay.classList.add('active');
+                termsModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeModal() {
+                termsOverlay.classList.remove('active');
+                termsModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            openTermsBtn.addEventListener('click', e => { e.preventDefault(); openModal(); });
+            closeTermsBtn.addEventListener('click', closeModal);
+            agreeTermsBtn.addEventListener('click', closeModal);
+            termsOverlay.addEventListener('click', closeModal);
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+            document.getElementById('year').textContent = new Date().getFullYear();
+        });
+    </script>
+</body>
+
+</html>
